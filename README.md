@@ -1,16 +1,66 @@
-# TopicLens — LDA Topic Modelling Web App
+# TopicLens — LDA Topic Modelling Explorer
 
-Implements preprocessing, document-term matrix creation, LDA training, topic-word distributions, document-topic distributions, and a topic interpretation report.
+## Overview
 
-## Run on Windows PowerShell
+TopicLens is a web-based Natural Language Processing application that explores latent themes in a collection of text documents using Latent Dirichlet Allocation (LDA).
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+The application compares Variational Bayes inference with Collapsed Gibbs Sampling and presents topic-word probabilities, document-topic distributions, and an interpretation report.
+
+## Features
+
+- Text preprocessing and cleaning
+- Document-term matrix generation using CountVectorizer
+- Variational Bayes LDA using scikit-learn
+- Collapsed Gibbs Sampling with 100 iterations
+- Topic-word probability visualisation
+- Document-topic distribution comparison
+- Interactive dashboard built with Flask
+
+## Technologies Used
+
+Python, Flask, scikit-learn, NumPy, HTML, CSS, JavaScript, and Jinja2.
+
+## Project Structure
+
+```text
+TopicLens/
+├── app.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── templates/
+│   └── index.html
+├── static/
+│   └── style.css
+└── screenshots/
+```
+
+## Installation and Execution
+
+1. Install Python 3.10 or a compatible version.
+2. Clone the repository.
+3. Install the dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Start the application:
+
+```bash
 python app.py
 ```
 
-Open http://127.0.0.1:5000.
+5. Open `http://127.0.0.1:5000/` in your browser.
 
-The built-in sample corpus contains 29 short documents covering technology, business, sports, health, and environment. Replace or extend `DOCUMENTS` in `app.py` if your instructor provided a specific corpus. The matrix display shows the first 12 columns for readability, while the full matrix is used to train LDA.
+## Screenshots
+
+Screenshots of the dashboard, preprocessing, topic distributions, and interpretation report are available in the `screenshots/` folder.
+
+## Academic Context
+
+Developed as a demonstration project for Advanced Natural Language Processing (AML23702), focusing on probabilistic topic modelling and sampling-based inference.
+
+## Limitations
+
+The demonstration uses a small, predefined corpus and five topics. Topic labels are heuristic, and topic quality should be evaluated further on a larger dataset.
