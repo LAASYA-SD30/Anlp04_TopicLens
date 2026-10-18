@@ -1,0 +1,342 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TopicLens | LDA Topic Modelling</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">TL</div>
+        <div>
+            <h1>TopicLens</h1>
+            <p>Latent Dirichlet Allocation Explorer</p>
+        </div>
+    </div>
+    <span class="status"><span></span> Model completed</span>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <p class="eyebrow">ADVANCED NATURAL LANGUAGE PROCESSING</p>
+        <h2>Discover the hidden themes in your documents.</h2>
+        <p>
+            Explore latent topics, word probabilities, document-topic
+            distributions, and two approaches to LDA inference.
+        </p>
+        <div class="hero-tags">
+            <span>CountVectorizer</span>
+            <span>Variational Bayes</span>
+            <span>Gibbs Sampling</span>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">OVERVIEW</p>
+                <h2>Corpus statistics</h2>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <article class="stat-card">
+                <p>Documents</p>
+                <h3>{{ stats.document_count }}</h3>
+                <span>Input collection</span>
+            </article>
+            <article class="stat-card">
+                <p>Vocabulary</p>
+                <h3>{{ stats.vocabulary_size }}</h3>
+                <span>Unique terms</span>
+            </article>
+            <article class="stat-card">
+                <p>Topics</p>
+                <h3>{{ stats.topic_count }}</h3>
+                <span>Topics per model</span>
+            </article>
+            <article class="stat-card">
+                <p>Word tokens</p>
+                <h3>{{ stats.token_count }}</h3>
+                <span>After preprocessing</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">PIPELINE · 01</p>
+                <h2>Text preprocessing</h2>
+                <p class="section-description">
+                    Original documents and their cleaned representations.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Original document</th>
+                        <th>Preprocessed document</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ document }}</td>
+                        <td>{{ cleaned_documents[loop.index0] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">PIPELINE · 02</p>
+                <h2>Document-term matrix</h2>
+                <p class="section-description">
+                    Preview of the first {{ dtm_terms|length }} vocabulary terms.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        {% for term in dtm_terms %}
+                        <th>{{ term }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in dtm_preview %}
+                    <tr>
+                        <td>{{ row["document_id"] }}</td>
+                        {% for value in row["values"] %}
+                        <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="note">
+            This is a preview. The complete matrix contains
+            {{ stats.dtm_rows }} documents and {{ stats.dtm_columns }} terms.
+        </p>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">MODEL · 03A</p>
+                <h2>Variational Bayes LDA</h2>
+                <p class="section-description">
+                    Approximate posterior inference using scikit-learn LDA.
+                </p>
+            </div>
+            <span class="method-badge">Variational inference</span>
+        </div>
+
+        <div class="topic-grid">
+            {% for topic in vb_topics %}
+            <article class="topic-card">
+                <div class="topic-card-header">
+                    <span class="topic-number">TOPIC {{ topic.topic_id }}</span>
+                    <h3>{{ topic.label }}</h3>
+                </div>
+
+                {% for item in topic.words %}
+                <div class="word-row">
+                    <div class="word-label">
+                        <span>{{ item.word }}</span>
+                        <span>{{ "%.4f"|format(item.probability) }}</span>
+                    </div>
+                    <div class="probability-track">
+                        <div class="probability-fill"
+                             data-probability="{{ item.probability }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">MODEL · 03B</p>
+                <h2>Collapsed Gibbs Sampling</h2>
+                <p class="section-description">
+                    Sampling-based topic inference through repeated
+                    conditional sampling of word-topic assignments.
+                </p>
+            </div>
+            <span class="method-badge secondary-badge">
+                {{ stats.gibbs_iterations }} iterations
+            </span>
+        </div>
+
+        <div class="topic-grid">
+            {% for topic in gibbs_topics %}
+            <article class="topic-card">
+                <div class="topic-card-header">
+                    <span class="topic-number">TOPIC {{ topic.topic_id }}</span>
+                    <h3>{{ topic.label }}</h3>
+                </div>
+
+                {% for item in topic.words %}
+                <div class="word-row">
+                    <div class="word-label">
+                        <span>{{ item.word }}</span>
+                        <span>{{ "%.4f"|format(item.probability) }}</span>
+                    </div>
+                    <div class="probability-track">
+                        <div class="probability-fill gibbs-fill"
+                             data-probability="{{ item.probability }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">DOCUMENT ANALYSIS · 04</p>
+                <h2>Document-topic distributions</h2>
+                <p class="section-description">
+                    Each probability indicates a document's estimated
+                    association with its dominant topic.
+                </p>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Dominant topic · VB</th>
+                        <th>Probability · VB</th>
+                        <th>Dominant topic · Gibbs</th>
+                        <th>Probability · Gibbs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in document_summaries %}
+                    <tr>
+                        <td>
+                            <strong>Document {{ doc["document_id"] }}</strong>
+                            <p class="small-text">{{ doc["original_text"] }}</p>
+                        </td>
+                        <td>
+                            <span class="topic-chip">
+                                {{ doc["dominant_topic"] }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ "%.4f"|format(doc["topic_probability"]) }}
+                        </td>
+                        <td>
+                            <span class="topic-chip gibbs-chip">
+                                {{ doc["gibbs_dominant_topic"] }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ "%.4f"|format(doc["gibbs_topic_probability"]) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="note">
+            Topic numbering is arbitrary. Compare top words and topic
+            meanings rather than assuming equal topic numbers are equivalent.
+        </p>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">INTERPRETATION · 05</p>
+                <h2>Topic interpretation report</h2>
+                <p class="section-description">
+                    Preprocessing, inference methods, discovered themes,
+                    comparison, and limitations.
+                </p>
+            </div>
+        </div>
+
+        <div class="report-list">
+            {% for item in report %}
+            <article class="report-card">
+                <h3>{{ item["heading"] }}</h3>
+                <p>{{ item["text"] }}</p>
+
+                {% if item.get("topics") %}
+                <div class="report-topics">
+                    {% for topic in item["topics"] %}
+                    <div class="report-topic">
+                        <strong>{{ topic["label"] }}</strong>
+                        <p>{{ topic["top_words"] }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="conclusion">
+        <p class="eyebrow">CONCLUSION</p>
+        <h2>From word counts to latent themes.</h2>
+        <p>
+            TopicLens demonstrates text preprocessing, document-term
+            representation, probabilistic topic modelling, sampling-based
+            inference, topic-word distributions, and document-level
+            topic interpretation.
+        </p>
+        <p class="note">
+            This demonstration uses a small, predefined corpus and five
+            topics. Evaluate topic quality using a larger document collection
+            before drawing broader conclusions.
+        </p>
+    </section>
+
+</main>
+
+<footer>
+    <p>TopicLens · Advanced Natural Language Processing · AML23702</p>
+</footer>
+
+<script>
+    document.querySelectorAll(".probability-fill").forEach((bar) => {
+        const probability = Number(bar.dataset.probability || 0);
+        const percentage = Math.max(0, Math.min(100, probability * 100));
+        bar.style.width = percentage + "%";
+    });
+</script>
+</body>
+</html>
